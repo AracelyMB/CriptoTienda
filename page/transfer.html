@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARY Token — Recompensas Borcelle</title>
+
+  <!-- Ethers v6 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
+
+  <style>
+    body{font-family:Arial;background:#0b0f14;color:#e8eef6;margin:0}
+    .wrap{max-width:900px;margin:auto;padding:24px}
+    .card{background:#121a24;border:1px solid #233244;border-radius:14px;padding:20px;margin-bottom:20px}
+    h1{margin-top:0}
+    button{background:#f4c430;color:#000;border:none;padding:12px 16px;border-radius:10px;font-weight:bold;cursor:pointer}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .muted{color:#9bb0c7;font-size:14px}
+    input{width:100%;padding:10px;border-radius:10px;border:1px solid #2a3a4f;background:#0b0f14;color:#fff}
+    .ok{color:#7CFC98}
+    .bad{color:#ff8a8a}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+<h1>🎁 Recompensas Borcelle — ARY Token</h1>
+<p class="muted">
+  Simulación real de fidelización: por cada compra el cliente recibe <strong>10 ARY</strong>.
+</p>
+
+<!-- CONEXIÓN -->
+<div class="card">
+  <h2>1️⃣ Conectar MetaMask</h2>
+  <button id="btnConnect">Conectar Wallet del Negocio</button>
+  <p class="muted">Cuenta: <span id="account">—</span></p>
+  <p class="muted">Estado: <span id="status">Esperando conexión…</span></p>
+</div>
+
+<!-- BALANCE -->
+<div class="card">
+  <h2>2️⃣ Balance ARY</h2>
+  <button id="btnBalance" disabled>Ver balance</button>
+  <p class="muted">Balance: <span id="balance">—</span></p>
+</div>
+
+<!-- COMPRA -->
+<div class="card">
+  <h2>3️⃣ Comprar y recibir recompensa</h2>
+  <p class="muted">
+    Al presionar el botón se simula una compra y se envían automáticamente
+    <strong>10 ARY</strong> al cliente.
+  </p>
+
+  <label class="muted">Dirección del cliente</label>
+  <input id="clientAddress" placeholder="0x..." />
+
+  <br><br>
+  <button id="btnBuy" disabled>Comprar y enviar 10 ARY</button>
+
+  <p class="muted">Tx: <span id="tx">—</span></p>
+</div>
+
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+
+const CONTRACT_ADDRESS = "0x3efbce682b32f495b4912f3866ce69da1a2d7e5c"; // ARY
+const REWARD_AMOUNT = "10";
+
+const ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function transfer(address,uint256) returns (bool)",
+  "function decimals() view returns (uint8)"
+];
+
+/* ================= VARIABLES ================= */
+
+let provider, signer, token, decimals = 18, businessAddress;
+
+/* ================= UI ================= */
+
+const elAccount = document.getElementById("account");
+const elStatus  = document.getElementById("status");
+const elBalance = document.getElementById("balance");
+const elTx      = document.getElementById("tx");
+
+const btnConnect = document.getElementById("btnConnect");
+const btnBalance = document.getElementById("btnBalance");
+const btnBuy     = document.getElementById("btnBuy");
+
+/* ================= FUNCIONES ================= */
+
+function setStatus(msg, ok=true){
+  elStatus.textContent = msg;
+  elStatus.className = ok ? "ok" : "bad";
+}
+
+async function connect(){
+  if(!window.ethereum){
+    setStatus("Instala MetaMask.", false);
+    return;
+  }
+
+  await ethereum.request({ method: "eth_requestAccounts" });
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
+  businessAddress = await signer.getAddress();
+
+  token = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+  decimals = await token.decimals();
+
+  elAccount.textContent = businessAddress;
+  setStatus("Wallet del negocio conectada ✅");
+
+  btnBalance.disabled = false;
+  btnBuy.disabled = false;
+}
+
+async function readBalance(){
+  const bal = await token.balanceOf(businessAddress);
+  elBalance.textContent = ethers.formatUnits(bal, decimals) + " ARY";
+}
+
+async function buyAndReward(){
+  const client = document.getElementById("clientAddress").value.trim();
+  if(!client){
+    setStatus("Ingresa la dirección del cliente.", false);
+    return;
+  }
+
+  try{
+    setStatus("Confirmar compra en MetaMask…");
+
+    const value = ethers.parseUnits(REWARD_AMOUNT, decimals);
+    const tx = await token.transfer(client, value);
+
+    elTx.textContent = tx.hash;
+    await tx.wait();
+
+    setStatus("✅ Compra completada. Recompensa enviada.");
+    await readBalance();
+
+  }catch(e){
+    setStatus("Transacción cancelada.", false);
+  }
+}
+
+/* ================= EVENTOS ================= */
+
+btnConnect.onclick = connect;
+btnBalance.onclick = readBalance;
+btnBuy.onclick = buyAndReward;
+</script>
+
+</body>
+</html>
