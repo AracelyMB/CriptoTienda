@@ -1,1 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Borcelle | Recompensas ARY</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 
+  <!-- Ethers -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
+
+  <style>
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:#0f0f0f;
+      color:#fff;
+    }
+    header{
+      padding:80px 20px;
+      text-align:center;
+      background:linear-gradient(135deg,#111,#222);
+    }
+    header h1{
+      font-size:48px;
+      margin-bottom:10px;
+    }
+    header p{
+      font-size:18px;
+      color:#ccc;
+    }
+    section{
+      padding:60px 20px;
+      max-width:900px;
+      margin:auto;
+    }
+    .box{
+      background:#1c1c1c;
+      padding:30px;
+      border-radius:14px;
+      margin-top:30px;
+    }
+    button{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:8px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      margin-top:15px;
+      background:#f4c430;
+      color:#000;
+    }
+    button:disabled{
+      background:#555;
+      cursor:not-allowed;
+    }
+    .wallet{
+      font-size:14px;
+      word-break:break-all;
+      color:#aaa;
+    }
+    .ok{
+      color:#7CFC98;
+      margin-top:15px;
+      font-weight:bold;
+    }
+    footer{
+      text-align:center;
+      padding:30px;
+      color:#777;
+      font-size:14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Borcelle</h1>
+  <p>Moda urbana con recompensas en blockchain</p>
+</header>
+
+<section>
+  <h2>🎁 Recompensas ARY Token</h2>
+  <p>
+    En Borcelle premiamos tu fidelidad.  
+    Por cada compra recibes <b>10 ARY Tokens</b>, nuestro token exclusivo,
+    directamente en tu billetera MetaMask.
+  </p>
+
+  <div class="box">
+    <h3>🧾 Compra y recibe ARY</h3>
+
+    <button id="connect">Conectar mi wallet</button>
+    <p class="wallet">Wallet: <span id="wallet">—</span></p>
+
+    <button id="buy" disabled>Comprar y recibir 10 ARY</button>
+
+    <p id="status"></p>
+  </div>
+</section>
+
+<section>
+  <h2>🔐 ¿Cómo funciona?</h2>
+  <ul>
+    <li>Conectas tu billetera MetaMask</li>
+    <li>Realizas una compra en Borcelle</li>
+    <li>Recibes automáticamente ARY Tokens</li>
+    <li>Puedes usarlos en futuras recompensas</li>
+  </ul>
+</section>
+
+<footer>
+  © 2026 Borcelle · Web3 Fashion
+</footer>
+
+<script>
+let userAddress = null;
+
+document.getElementById("connect").onclick = async () => {
+  if(!window.ethereum){
+    alert("Necesitas MetaMask para continuar");
+    return;
+  }
+
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  userAddress = await signer.getAddress();
+
+  document.getElementById("wallet").textContent = userAddress;
+  document.getElementById("buy").disabled = false;
+};
+
+document.getElementById("buy").onclick = () => {
+  document.getElementById("status").innerHTML =
+    "<span class='ok'>✅ Compra registrada. Tus 10 ARY serán enviados automáticamente a tu wallet.</span>";
+};
+</script>
+
+</body>
+</html>
